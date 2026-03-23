@@ -8,9 +8,14 @@ require('dotenv').config();
 
 const app = express();
 
-// Allow frontend (e.g., Live Server on port 5500) to communicate with backend
-app.use(cors());
+// Secure CORS policy: Only allow requests from your live frontend on Render
+app.use(cors({
+    origin: 'https://naropil-frontend.onrender.com'
+}));
 app.use(express.json());
+
+// Serve static files (like favicons and images) from a "public" folder if you add one
+app.use(express.static('public'));
 
 // --- DATABASE CONNECTION POOL ---
 const pool = mysql.createPool({
@@ -66,10 +71,14 @@ function authenticateToken(req, res, next) {
     });
 }
 
+// --- ROUTER SETUP ---
+// We use a router so that routes work whether the frontend calls "/api/public/..." OR just "/public/..."
+const apiRouter = express.Router();
+
 // ==========================================
 // 1. AUTHENTICATION ENDPOINT
 // ==========================================
-app.post('/api/auth/login', async (req, res) => {
+apiRouter.post('/auth/login', async (req, res) => {
     const { email, password } = req.body;
     try {
         const [users] = await pool.query('SELECT * FROM admins WHERE email = ?', [email]);
@@ -86,28 +95,28 @@ app.post('/api/auth/login', async (req, res) => {
 // ==========================================
 // 2. PUBLIC ENDPOINTS (Read Data & Submit Forms)
 // ==========================================
-app.get('/api/public/gallery', async (req, res) => {
+apiRouter.get('/public/gallery', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM gallery ORDER BY created_at DESC');
         res.json(rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/public/events', async (req, res) => {
+apiRouter.get('/public/events', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM events ORDER BY created_at DESC');
         res.json(rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/public/donations', async (req, res) => {
+apiRouter.get('/public/donations', async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT name, amount, created_at FROM donations WHERE status = 'completed' ORDER BY created_at DESC LIMIT 10");
         res.json(rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/api/public/messages', async (req, res) => {
+apiRouter.post('/public/messages', async (req, res) => {
     const { name, email, subject, message } = req.body;
     try {
         await pool.query('INSERT INTO messages (name, email, subject, message) VALUES (?, ?, ?, ?)', [name, email, subject, message]);
@@ -115,7 +124,7 @@ app.post('/api/public/messages', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/api/public/volunteers', async (req, res) => {
+apiRouter.post('/public/volunteers', async (req, res) => {
     const { name, email, skills, message } = req.body;
     try {
         await pool.query('INSERT INTO volunteers (name, email, skills, message) VALUES (?, ?, ?, ?)', [name, email, skills, message]);
@@ -123,7 +132,7 @@ app.post('/api/public/volunteers', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/api/public/subscribers', async (req, res) => {
+apiRouter.post('/public/subscribers', async (req, res) => {
     try {
         await pool.query('INSERT INTO subscribers (email) VALUES (?)', [req.body.email]);
         res.json({ success: true });
@@ -144,7 +153,7 @@ async function getTumaToken() {
     throw new Error("Failed to authenticate with Tuma API");
 }
 
-app.post('/api/tuma/donate', async (req, res) => {
+apiRouter.post('/tuma/donate', async (req, res) => {
     const { phone, amount, name } = req.body;
     // Format phone to strictly numbers (e.g. 254712345678)
     const formattedPhone = phone.replace(/\D/g, ''); 
@@ -182,7 +191,7 @@ app.post('/api/tuma/donate', async (req, res) => {
     }
 });
 
-app.post('/api/tuma-callback', async (req, res) => {
+apiRouter.post('/tuma-callback', async (req, res) => {
     res.status(200).json({ success: true }); // Acknowledge webhook receipt to Tuma server
     
     const callbackData = req.body;
@@ -204,7 +213,7 @@ app.post('/api/tuma-callback', async (req, res) => {
 // ==========================================
 // 4. SECURE ADMIN ENDPOINTS (Requires valid JWT token)
 // ==========================================
-app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
+apiRouter.get('/admin/dashboard', authenticateToken, async (req, res) => {
     try {
         const [donations] = await pool.query('SELECT * FROM donations ORDER BY created_at DESC');
         const [messages] = await pool.query('SELECT * FROM messages ORDER BY created_at DESC');
@@ -214,7 +223,7 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/api/admin/gallery', authenticateToken, async (req, res) => {
+apiRouter.post('/admin/gallery', authenticateToken, async (req, res) => {
     try {
         await pool.query('INSERT INTO gallery (url, caption) VALUES (?, ?)', [req.body.url, req.body.caption]);
         res.json({ success: true });
@@ -227,7 +236,7 @@ app.post('/api/admin/gallery', authenticateToken, async (req, res) => {
     }
 });
 
-app.delete('/api/admin/:table/:id', authenticateToken, async (req, res) => {
+apiRouter.delete('/admin/:table/:id', authenticateToken, async (req, res) => {
     const validTables = ['gallery', 'events', 'messages', 'volunteers', 'subscribers'];
     if (!validTables.includes(req.params.table)) return res.status(400).json({error: 'Invalid table'});
     try {
@@ -236,19 +245,23 @@ app.delete('/api/admin/:table/:id', authenticateToken, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/api/admin/events', authenticateToken, async (req, res) => {
+apiRouter.post('/admin/events', authenticateToken, async (req, res) => {
     try {
         await pool.query('INSERT INTO events (title, content) VALUES (?, ?)', [req.body.title, req.body.content]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.put('/api/admin/volunteers/:id/status', authenticateToken, async (req, res) => {
+apiRouter.put('/admin/volunteers/:id/status', authenticateToken, async (req, res) => {
     try {
         await pool.query('UPDATE volunteers SET status = ? WHERE id = ?', [req.body.status, req.params.id]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// Mount the router on BOTH '/api' and '/' to elegantly prevent any 404 mismatch errors
+app.use('/api', apiRouter);
+app.use('/', apiRouter);
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Node.js/MySQL Backend running securely on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Node.js/MySQL Backend running securely on port ${PORT}`));
