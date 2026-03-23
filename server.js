@@ -39,34 +39,113 @@ const dbConfig = process.env.DATABASE_URL ? {
 
 const pool = mysql.createPool(dbConfig);
 
-// Auto-Initialize Default Admin and Patch Database Schema on Startup
-async function initAdmin() {
+// --- AUTO-INITIALIZE DATABASE TABLES & SEED DATA ---
+async function initializeDatabase() {
     try {
-        // Fix for "Data too long for column 'url'"
+        console.log("🔄 Initializing database structures...");
+
+        // 1. Create all necessary tables if they don't exist
+        const tableQueries = [
+            `CREATE TABLE IF NOT EXISTS admins (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`,
+            `CREATE TABLE IF NOT EXISTS gallery (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                url TEXT NOT NULL,
+                caption VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`,
+            `CREATE TABLE IF NOT EXISTS events (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`,
+            `CREATE TABLE IF NOT EXISTS donations (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                phone VARCHAR(50),
+                amount DECIMAL(10,2) NOT NULL,
+                checkout_request_id VARCHAR(255),
+                receipt VARCHAR(255),
+                status VARCHAR(50) DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`,
+            `CREATE TABLE IF NOT EXISTS messages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                subject VARCHAR(255),
+                message TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`,
+            `CREATE TABLE IF NOT EXISTS volunteers (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                skills TEXT,
+                message TEXT,
+                status VARCHAR(50) DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`,
+            `CREATE TABLE IF NOT EXISTS subscribers (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`
+        ];
+
+        for (const query of tableQueries) {
+            await pool.query(query);
+        }
+        console.log("✅ All Tables verified/created.");
+
+        // 2. Fix for "Data too long for column 'url'" (Legacy update safeguard)
         try {
             await pool.query('ALTER TABLE gallery MODIFY COLUMN url TEXT');
         } catch (schemaErr) {
-            // Fails silently if table doesn't exist yet, which is fine
+            // Fails silently if already TEXT, which is fine
         }
 
+        // 3. Seed Default Admin
         const defaultEmail = process.env.ADMIN_EMAIL || 'naropilchildrenfoundation@gmail.com';
         const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
         
-        const [rows] = await pool.query('SELECT * FROM admins WHERE email = ?', [defaultEmail]);
-        if (rows.length === 0) {
+        const [adminRows] = await pool.query('SELECT * FROM admins WHERE email = ?', [defaultEmail]);
+        if (adminRows.length === 0) {
             const hash = await bcrypt.hash(defaultPassword, 10);
             await pool.query('INSERT INTO admins (email, password) VALUES (?, ?)', [defaultEmail, hash]);
-            console.log(`Default admin created: ${defaultEmail}`);
+            console.log(`👤 Default admin created: ${defaultEmail}`);
         } else {
+            // Update the password to keep it in sync with ENV variables
             const hash = await bcrypt.hash(defaultPassword, 10);
             await pool.query('UPDATE admins SET password = ? WHERE email = ?', [hash, defaultEmail]);
+            console.log(`👤 Default admin verified.`);
         }
-        console.log("✅ Successfully connected to Aiven MySQL Database!");
+
+        // 4. Seed Sample Gallery Data (Only if empty)
+        const [galleryRows] = await pool.query('SELECT * FROM gallery LIMIT 1');
+        if (galleryRows.length === 0) {
+            const sampleImages = [
+                ['https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop', 'Children at play'],
+                ['https://images.unsplash.com/photo-1542810634-71277d95dcbb?q=80&w=2070&auto=format&fit=crop', 'Donation drive 2026']
+            ];
+            for (let img of sampleImages) {
+                await pool.query('INSERT INTO gallery (url, caption) VALUES (?, ?)', [img[0], img[1]]);
+            }
+            console.log("🖼️ Sample Gallery data added.");
+        }
+
+        console.log("✅ Successfully connected to Aiven MySQL Database and System is Ready!");
     } catch (err) { 
-        console.error('❌ MySQL Connection Error (Check Render Environment Variables!):', err.message); 
+        console.error('❌ MySQL Initialization Error (Check Render Environment Variables!):', err.message); 
     }
 }
-initAdmin();
+// Start the setup automatically
+initializeDatabase();
 
 // --- SECURITY MIDDLEWARE ---
 function authenticateToken(req, res, next) {
