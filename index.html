@@ -124,7 +124,7 @@
         <section id="home" class="page-section active">
             <!-- Hero -->
             <div class="relative bg-brand-blueDark text-white pt-28 pb-48 px-4 overflow-hidden">
-                <div class="absolute inset-0 opacity-40 bg-[url('https://images.justgiving.com/image/eabf25c9-3d33-45ba-8b16-abd9e8cdb04f.jpg?template=Size800w')] bg-cover bg-center mix-blend-overlay"></div>
+                <div class="absolute inset-0 opacity-40 bg-[url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay"></div>
                 <div class="absolute inset-0 bg-gradient-to-b from-brand-blueDark/90 via-brand-blueDark/70 to-brand-blueDark"></div>
                 
                 <div class="container mx-auto relative z-10 text-center max-w-4xl reveal">
@@ -251,7 +251,7 @@
                     <div class="w-full lg:w-1/2 relative group">
                         <div class="absolute -top-4 -left-4 w-32 h-32 bg-brand-green rounded-full -z-10 opacity-20 transition-transform group-hover:scale-110"></div>
                         <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-brand-blue rounded-xl -z-10 opacity-10 rotate-12 transition-transform group-hover:rotate-45"></div>
-                        <img src="https://images.justgiving.com/image/eabf25c9-3d33-45ba-8b16-abd9e8cdb04f.jpg?template=Size800w" alt="Children laughing" class="rounded-3xl shadow-2xl w-full object-cover h-[500px] transition-transform duration-700 hover:scale-[1.02]">
+                        <img src="https://images.unsplash.com/photo-1542810634-71277d95dcbb?q=80&w=2070&auto=format&fit=crop" alt="Children laughing" class="rounded-3xl shadow-2xl w-full object-cover h-[500px] transition-transform duration-700 hover:scale-[1.02]">
                         <div class="absolute -bottom-6 -right-6 bg-white p-8 rounded-2xl shadow-2xl max-w-xs border border-gray-100 animate-pulse-slow">
                             <p class="text-brand-blue font-bold text-5xl mb-1">10<span class="text-brand-green">+</span></p>
                             <p class="text-gray-500 text-sm font-bold uppercase tracking-widest">Years of Trust & Service</p>
@@ -656,7 +656,7 @@
                                 <p><strong class="text-brand-blueDark">Bank:</strong> Co-operative Bank of Kenya</p>
                                 <p><strong class="text-brand-blueDark">Branch:</strong> Narok Branch</p>
                                 <p><strong class="text-brand-blueDark">Account Name:</strong> Naropil Children Foundation</p>
-                                <p><strong class="text-brand-blueDark">Account No:</strong> 0110**********200</p>
+                                <p><strong class="text-brand-blueDark">Account No:</strong> 0110000000000</p>
                             </div>
                         </div>
                     </div>
@@ -1400,21 +1400,37 @@
             window.setLoading('btn-donate', true);
             const amount = document.getElementById('don_amount').value;
             const name = document.getElementById('don_name').value;
-            const phone = document.getElementById('don_phone').value;
+            let rawPhone = document.getElementById('don_phone').value.replace(/\s+/g, '');
             
             if (Number(amount) < 10) {
                 window.showToast('Amount must be at least 10 KES', 'error');
                 window.setLoading('btn-donate', false);
                 return;
             }
+
+            // Sanitize phone number to strictly be +2547... or +2541...
+            if (rawPhone.startsWith('0')) rawPhone = rawPhone.substring(1);
+            if (rawPhone.startsWith('+254')) rawPhone = rawPhone.substring(4);
+            if (rawPhone.startsWith('254')) rawPhone = rawPhone.substring(3);
+            
+            if (rawPhone.length !== 9) {
+                window.showToast('Please enter a valid 9-digit number after +254', 'error');
+                window.setLoading('btn-donate', false);
+                return;
+            }
+
+            const formattedPhone = '+254' + rawPhone;
             
             try {
-                await apiCall('/tuma/donate', 'POST', { name, amount, phone: '+254' + phone });
+                // NOTE: If you still get a 404 here, change '/tuma/donate' to '/tuma-pay' based on your server.js
+                await apiCall('/tuma/donate', 'POST', { name, amount, phone: formattedPhone });
                 document.getElementById('mpesa-instructions').classList.remove('hidden');
                 document.getElementById('btn-donate').classList.add('hidden');
                 window.showToast('STK Push Sent. Check your phone.');
             } catch (err) {
-                window.showToast('Error initiating payment.', 'error');
+                console.error("Donation Error:", err);
+                // Make the error visible to the user so we know exactly what failed
+                window.showToast(err.message || 'Server error (404). Check backend routes.', 'error');
             } finally { window.setLoading('btn-donate', false); }
         };
 
