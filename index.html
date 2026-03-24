@@ -429,7 +429,7 @@
                     <h2 class="text-3xl font-serif font-bold mb-6">Get In Touch</h2>
                     <p class="text-blue-100 mb-10 text-sm leading-relaxed">We are always open to discussing new partnerships, volunteer opportunities, or just answering your questions.</p>
                     <div class="space-y-6 text-sm">
-                        <div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-brand-green"><i class="fas fa-map-marker-alt"></i></div><p>zip code 20500, PO BOX 217, Narok, Kenya</p></div>
+                        <div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-brand-green"><i class="fas fa-map-marker-alt"></i></div><p>P.O. Box 217-20500<br>Narok, Kenya</p></div>
                         <div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-brand-green"><i class="fas fa-phone"></i></div><p>0722523591</p></div>
                         <div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-brand-green"><i class="fas fa-envelope"></i></div><p>naropilchildrenfoundation@gmail.com</p></div>
                     </div>
@@ -524,7 +524,7 @@
                             <div class="p-5 border-b border-gray-100"><h3 class="font-bold text-gray-800">Recent M-Pesa Donations</h3></div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left text-sm">
-                                    <thead class="bg-gray-50 text-gray-400 font-bold uppercase text-xs"><tr><th class="p-4">Donor Name</th><th class="p-4">Phone</th><th class="p-4">Amount</th><th class="p-4">Date</th></tr></thead>
+                                    <thead class="bg-gray-50 text-gray-400 font-bold uppercase text-xs"><tr><th class="p-4">Donor Name</th><th class="p-4">Phone</th><th class="p-4">Amount</th><th class="p-4">Status</th><th class="p-4">Date</th></tr></thead>
                                     <tbody id="dash-table-donations" class="divide-y divide-gray-50"></tbody>
                                 </table>
                             </div>
@@ -610,7 +610,7 @@
         <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
             <div>
                 <div class="flex items-center gap-3 mb-6">
-                    <img src="https://lh3.googleusercontent.com/p/AF1QipPNJ39dndmsB6wZVD4a5QhLczOmhLazI1MzdBaJ=w980-h200-n-k-no-nu" alt="Naropil Logo" class="w-10 h-10 rounded-full object-cover shadow-md border border-gray-700">
+                    <img src="https://lh3.googleusercontent.com/xvy4IE6LeOSPPUoibxEW5P0DZ7gEjMf_FQKxnqszyeELddXEIQ18XljDfDNaQ3iPBp9EYoMl4kYxCiaM=w1521" alt="Naropil Logo" class="w-10 h-10 rounded-full object-cover shadow-md border border-gray-700">
                     <h2 class="text-white font-bold text-lg">Naropil Foundation</h2>
                 </div>
                 <p class="text-sm leading-relaxed mb-6">Dedicated to the sustainable improvement of life for vulnerable children in marginalized communities.</p>
@@ -635,7 +635,7 @@
             <div>
                 <h3 class="text-white font-bold mb-6">Contact</h3>
                 <ul class="space-y-3 text-sm">
-                    <li class="flex items-start gap-3"><i class="fas fa-map-marker-alt mt-1 text-brand-green"></i> zip code 20500,PO BOX 217 narok, Kenya</li>
+                    <li class="flex items-start gap-3"><i class="fas fa-map-marker-alt mt-1 text-brand-green"></i> P.O. Box 217-20500, Narok, Kenya</li>
                     <li class="flex items-start gap-3"><i class="fas fa-phone mt-1 text-brand-green"></i> 0722523591</li>
                     <li class="flex items-start gap-3"><i class="fas fa-envelope mt-1 text-brand-green"></i> naropilchildrenfoundation@gmail.com</li>
                 </ul>
@@ -975,14 +975,41 @@
                 
                 // Render Donations
                 const tbodyD = document.getElementById('dash-table-donations');
-                let total = 0; tbodyD.innerHTML = '';
+                let total = 0; 
+                tbodyD.innerHTML = '';
+                
                 data.donations.forEach(d => {
-                    total += Number(d.amount);
+                    // Only sum the amount if the payment actually succeeded
+                    if (d.status === 'completed') {
+                        total += Number(d.amount);
+                    }
+                    
                     const date = new Date(d.created_at).toLocaleDateString();
-                    tbodyD.innerHTML += `<tr class="border-b"><td class="p-4 font-bold text-gray-700">${d.name}</td><td class="p-4 text-gray-500">${d.phone}</td><td class="p-4 font-bold text-brand-green">KES ${Number(d.amount).toLocaleString()}</td><td class="p-4 text-gray-400">${date}</td></tr>`;
+                    
+                    // Create a visual status badge based on transaction state
+                    let statusHtml = '';
+                    if (d.status === 'completed') {
+                        statusHtml = '<span class="text-green-600 bg-green-100 px-2 py-1 rounded text-[10px] font-bold uppercase">Completed</span>';
+                    } else if (d.status === 'failed') {
+                        statusHtml = '<span class="text-red-600 bg-red-100 px-2 py-1 rounded text-[10px] font-bold uppercase">Failed</span>';
+                    } else {
+                        statusHtml = '<span class="text-orange-600 bg-orange-100 px-2 py-1 rounded text-[10px] font-bold uppercase">Pending</span>';
+                    }
+
+                    tbodyD.innerHTML += `<tr class="border-b">
+                        <td class="p-4 font-bold text-gray-700">${d.name}</td>
+                        <td class="p-4 text-gray-500">${d.phone}</td>
+                        <td class="p-4 font-bold text-brand-green">KES ${Number(d.amount).toLocaleString()}</td>
+                        <td class="p-4">${statusHtml}</td>
+                        <td class="p-4 text-gray-400">${date}</td>
+                    </tr>`;
                 });
+                
                 document.getElementById('dash-total-donations').innerText = `KES ${total.toLocaleString()}`;
-                if(!data.donations.length) tbodyD.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-gray-400">No data</td></tr>';
+                
+                if(!data.donations.length) {
+                    tbodyD.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-400">No data</td></tr>';
+                }
 
                 // Render Messages
                 const listM = document.getElementById('admin-messages-list');
