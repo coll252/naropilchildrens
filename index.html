@@ -416,7 +416,8 @@
                     <div id="mpesa-instructions" class="hidden mt-6 bg-green-50 p-5 rounded-2xl border border-green-100 text-center">
                         <i class="fas fa-spinner fa-spin text-brand-green text-3xl mb-3"></i>
                         <p class="font-bold text-brand-greenDark">Check your phone!</p>
-                        <p class="text-xs text-gray-600 mt-2">Enter your M-Pesa PIN on the prompt sent to your device to authorize the Co-op Bank deposit.</p>
+                        <p class="text-xs text-gray-600 mt-2 mb-4">Enter your M-Pesa PIN on the prompt sent to your device to authorize the Co-op Bank deposit.</p>
+                        <button type="button" onclick="window.finishDonation()" class="bg-brand-blue text-white font-bold py-2 px-6 rounded-lg text-sm hover:bg-brand-blueDark transition-all shadow-md">I have entered my PIN</button>
                     </div>
                 </div>
             </div>
@@ -508,9 +509,12 @@
                     
                     <!-- TAB: OVERVIEW -->
                     <div id="tab-overview" class="admin-tab-content active">
-                        <div class="flex justify-between items-center mb-8">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4">
                             <h2 class="text-2xl font-bold text-gray-800">Dashboard Overview</h2>
-                            <button onclick="switchPage('home')" class="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm shadow-sm hover:bg-gray-50"><i class="fas fa-external-link-alt mr-2"></i>View Live Site</button>
+                            <div class="flex gap-2">
+                                <button onclick="window.loadDashboardData()" class="bg-brand-green text-white px-4 py-2 rounded-lg text-sm shadow-sm hover:bg-brand-greenDark transition-colors"><i class="fas fa-sync-alt mr-2"></i>Refresh Data</button>
+                                <button onclick="switchPage('home')" class="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm shadow-sm hover:bg-gray-50 transition-colors hidden sm:block"><i class="fas fa-external-link-alt mr-2"></i>Live Site</button>
+                            </div>
                         </div>
                         
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -857,6 +861,15 @@
             finally { window.setLoading('btn-volunteer', false); }
         };
 
+        window.finishDonation = () => {
+            document.getElementById('donateForm').reset();
+            document.getElementById('mpesa-instructions').classList.add('hidden');
+            document.getElementById('btn-donate').classList.remove('hidden');
+            window.switchPage('home');
+            loadPublicData();
+            window.showToast('Thank you! Your transaction is processing.');
+        };
+
         window.handleDonation = async (e) => {
             e.preventDefault();
             window.setLoading('btn-donate', true);
@@ -864,20 +877,20 @@
             const name = document.getElementById('don_name').value;
             const phone = document.getElementById('don_phone').value;
             
+            // Validate amount
+            if (Number(amount) < 10) {
+                window.showToast('Amount must be at least 10 KES', 'error');
+                window.setLoading('btn-donate', false);
+                return;
+            }
+            
             try {
-                // Now hitting our new Co-op / Tuma endpoint
+                // Initiating Co-op / Tuma endpoint
                 await apiCall('/tuma/donate', 'POST', { name, amount, phone: '+254' + phone });
                 
                 document.getElementById('mpesa-instructions').classList.remove('hidden');
                 document.getElementById('btn-donate').classList.add('hidden');
                 window.showToast('Check your phone to complete M-Pesa transaction.');
-                setTimeout(() => {
-                    document.getElementById('donateForm').reset();
-                    document.getElementById('mpesa-instructions').classList.add('hidden');
-                    document.getElementById('btn-donate').classList.remove('hidden');
-                    window.switchPage('home');
-                    loadPublicData(); 
-                }, 15000); 
             } catch (err) {
                 window.showToast('Error initiating payment.', 'error');
             } finally { window.setLoading('btn-donate', false); }
