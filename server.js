@@ -122,6 +122,11 @@ async function initializeDatabase() {
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 email VARCHAR(255) UNIQUE NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`,
+            `CREATE TABLE IF NOT EXISTS stk_cancellations (
+                phone VARCHAR(50) PRIMARY KEY,
+                cancel_count INT DEFAULT 0,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )`
         ];
 
@@ -262,6 +267,12 @@ apiRouter.post('/tuma/donate', async (req, res) => {
     const formattedPhone = phone.replace(/\D/g, ''); 
     
     try {
+        // ENFORCEMENT: Check STK Push Cancellation Policy
+        const [blocks] = await pool.query('SELECT cancel_count FROM stk_cancellations WHERE phone = ?', [formattedPhone]);
+        if (blocks.length > 0 && blocks[0].cancel_count >= 3) {
+            return res.status(403).json({ error: 'M-Pesa payments temporarily blocked due to multiple consecutive cancellations. Please use a Card or try again later.' });
+        }
+
         const token = await getTumaToken();
         const payload = {
             amount: parseFloat(amount),
@@ -284,7 +295,8 @@ apiRouter.post('/tuma/donate', async (req, res) => {
         }
     } catch (error) { 
         console.error("Tuma Payment error:", error?.response?.data || error.message);
-        res.status(500).json({ error: 'Failed to initiate Co-op Bank payment.' }); 
+        const errorMessage = error?.response?.data?.message || error.message || 'Failed to initiate Co-op Bank payment.';
+        res.status(500).json({ error: errorMessage }); 
     }
 });
 
@@ -294,11 +306,23 @@ apiRouter.post('/tuma-callback', async (req, res) => {
     if (!callbackData || !callbackData.checkout_request_id) return;
 
     try {
+        // Find phone number associated with this checkout
+        const [donationRows] = await pool.query('SELECT phone FROM donations WHERE checkout_request_id = ?', [callbackData.checkout_request_id]);
+        const phone = donationRows.length > 0 ? donationRows[0].phone : null;
+
         if (callbackData.result_code === 0 && callbackData.status === 'completed') {
             await pool.query("UPDATE donations SET status = 'completed', receipt = ? WHERE checkout_request_id = ?", 
                 [callbackData.mpesa_receipt_number, callbackData.checkout_request_id]);
+            
+            // Reset consecutive cancellations on successful payment
+            if (phone) await pool.query('DELETE FROM stk_cancellations WHERE phone = ?', [phone]);
         } else {
             await pool.query("UPDATE donations SET status = 'failed' WHERE checkout_request_id = ?", [callbackData.checkout_request_id]);
+            
+            // POLICY IMPLEMENTATION: Track 1032 Cancellations
+            if (callbackData.result_code == 1032 && phone) {
+                await pool.query('INSERT INTO stk_cancellations (phone, cancel_count) VALUES (?, 1) ON DUPLICATE KEY UPDATE cancel_count = cancel_count + 1', [phone]);
+            }
         }
     } catch (err) { console.error("Callback DB update error:", err.message); }
 });
