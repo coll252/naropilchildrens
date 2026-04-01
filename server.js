@@ -4,6 +4,7 @@ const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
@@ -12,13 +13,39 @@ const app = express();
 app.use(cors({
     origin: 'https://naropil-frontend.onrender.com'
 }));
-app.use(express.json());
 
-// Serve static files (like favicons and images) from a "public" folder if you add one
+// Parse JSON bodies globally
+app.use(express.json());
 app.use(express.static('public'));
 
+// --- PAYSTACK WEBHOOK (Visa/Mastercard) ---
+app.post('/api/paystack/webhook', async (req, res) => {
+    try {
+        // Validate event using Paystack's signature
+        const secret = process.env.PAYSTACK_SECRET_KEY;
+        const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(req.body)).digest('hex');
+        
+        if (hash === req.headers['x-paystack-signature']) {
+            const event = req.body;
+            
+            // If payment was successful, update the database
+            if (event.event === 'charge.success') {
+                const reference = event.data.reference;
+                await pool.query(
+                    "UPDATE donations SET status = 'completed', receipt = ? WHERE checkout_request_id = ?", 
+                    [event.data.receipt_number || reference, reference]
+                );
+                console.log(`✅ Visa Payment completed for reference: ${reference}`);
+            }
+        }
+    } catch (err) {
+        console.error("Webhook processing error:", err.message);
+    }
+    // Paystack requires a 200 response to acknowledge receipt
+    res.status(200).send('Webhook received');
+});
+
 // --- DATABASE CONNECTION POOL ---
-// This update safely handles Aiven's unique connection requirements
 const dbConfig = process.env.DATABASE_URL ? {
     uri: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }, // CRITICAL FOR AIVEN
@@ -30,7 +57,7 @@ const dbConfig = process.env.DATABASE_URL ? {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    port: process.env.DB_PORT || 3306, // Defaults to 3306 if DB_PORT is missing
+    port: process.env.DB_PORT || 3306,
     ssl: { rejectUnauthorized: false }, // CRITICAL FOR AIVEN
     waitForConnections: true,
     connectionLimit: 10,
@@ -44,7 +71,6 @@ async function initializeDatabase() {
     try {
         console.log("🔄 Initializing database structures...");
 
-        // 1. Create all necessary tables if they don't exist
         const tableQueries = [
             `CREATE TABLE IF NOT EXISTS admins (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -72,6 +98,7 @@ async function initializeDatabase() {
                 checkout_request_id VARCHAR(255),
                 receipt VARCHAR(255),
                 status VARCHAR(50) DEFAULT 'pending',
+                payment_method VARCHAR(50) DEFAULT 'mpesa',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )`,
             `CREATE TABLE IF NOT EXISTS messages (
@@ -101,16 +128,18 @@ async function initializeDatabase() {
         for (const query of tableQueries) {
             await pool.query(query);
         }
-        console.log("✅ All Tables verified/created.");
-
-        // 2. Fix for "Data too long for column 'url'" (Legacy update safeguard)
+        
+        // Add payment_method column safely for older deployments
         try {
-            await pool.query('ALTER TABLE gallery MODIFY COLUMN url TEXT');
-        } catch (schemaErr) {
-            // Fails silently if already TEXT, which is fine
+            await pool.query("ALTER TABLE donations ADD COLUMN payment_method VARCHAR(50) DEFAULT 'mpesa'");
+        } catch (e) {
+            // Fails silently if column already exists
         }
 
-        // 3. Seed Default Admin
+        console.log("✅ All Tables verified/created.");
+
+        try { await pool.query('ALTER TABLE gallery MODIFY COLUMN url TEXT'); } catch (e) {}
+
         const defaultEmail = process.env.ADMIN_EMAIL || 'naropilchildrenfoundation@gmail.com';
         const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
         
@@ -120,31 +149,26 @@ async function initializeDatabase() {
             await pool.query('INSERT INTO admins (email, password) VALUES (?, ?)', [defaultEmail, hash]);
             console.log(`👤 Default admin created: ${defaultEmail}`);
         } else {
-            // Update the password to keep it in sync with ENV variables
             const hash = await bcrypt.hash(defaultPassword, 10);
             await pool.query('UPDATE admins SET password = ? WHERE email = ?', [hash, defaultEmail]);
             console.log(`👤 Default admin verified.`);
         }
 
-        // 4. Seed Sample Gallery Data (Only if empty)
         const [galleryRows] = await pool.query('SELECT * FROM gallery LIMIT 1');
         if (galleryRows.length === 0) {
             const sampleImages = [
                 ['https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop', 'Children at play'],
                 ['https://images.unsplash.com/photo-1542810634-71277d95dcbb?q=80&w=2070&auto=format&fit=crop', 'Donation drive 2026']
             ];
-            for (let img of sampleImages) {
-                await pool.query('INSERT INTO gallery (url, caption) VALUES (?, ?)', [img[0], img[1]]);
-            }
+            for (let img of sampleImages) { await pool.query('INSERT INTO gallery (url, caption) VALUES (?, ?)', [img[0], img[1]]); }
             console.log("🖼️ Sample Gallery data added.");
         }
 
         console.log("✅ Successfully connected to Aiven MySQL Database and System is Ready!");
     } catch (err) { 
-        console.error('❌ MySQL Initialization Error (Check Render Environment Variables!):', err.message); 
+        console.error('❌ MySQL Initialization Error:', err.message); 
     }
 }
-// Start the setup automatically
 initializeDatabase();
 
 // --- SECURITY MIDDLEWARE ---
@@ -195,7 +219,7 @@ apiRouter.get('/public/events', async (req, res) => {
 
 apiRouter.get('/public/donations', async (req, res) => {
     try {
-        const [rows] = await pool.query("SELECT name, amount, created_at FROM donations WHERE status = 'completed' ORDER BY created_at DESC LIMIT 10");
+        const [rows] = await pool.query("SELECT name, amount, created_at, payment_method FROM donations WHERE status = 'completed' ORDER BY created_at DESC LIMIT 10");
         res.json(rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -223,7 +247,7 @@ apiRouter.post('/public/subscribers', async (req, res) => {
     } catch (err) { res.status(400).json({ error: 'Email already subscribed' }); }
 });
 
-// 3. CO-OPERATIVE BANK (TUMA PAYMENTS)
+// 3. CO-OPERATIVE BANK (M-PESA TUMA PAYMENTS)
 async function getTumaToken() {
     const response = await axios.post('https://api.tuma.co.ke/auth/token', {
         email: process.env.TUMA_EMAIL,
@@ -252,8 +276,8 @@ apiRouter.post('/tuma/donate', async (req, res) => {
         
         if (response.data.success) {
             const checkoutRequestId = response.data.data.checkout_request_id;
-            await pool.query('INSERT INTO donations (name, phone, amount, checkout_request_id, status) VALUES (?, ?, ?, ?, ?)', 
-                [name, formattedPhone, amount, checkoutRequestId, 'pending']);
+            await pool.query('INSERT INTO donations (name, phone, amount, checkout_request_id, status, payment_method) VALUES (?, ?, ?, ?, ?, ?)', 
+                [name, formattedPhone, amount, checkoutRequestId, 'pending', 'mpesa']);
             res.json({ success: true, message: 'Push sent successfully' });
         } else {
             throw new Error(response.data.message);
@@ -279,7 +303,39 @@ apiRouter.post('/tuma-callback', async (req, res) => {
     } catch (err) { console.error("Callback DB update error:", err.message); }
 });
 
-// 4. SECURE ADMIN ENDPOINTS
+// 4. VISA / MASTERCARD (PAYSTACK CHECKOUT)
+apiRouter.post('/paystack/donate', async (req, res) => {
+    const { amount, name, email } = req.body;
+    
+    try {
+        const response = await axios.post('https://api.paystack.co/transaction/initialize', {
+            email: email,
+            amount: Math.round(parseFloat(amount) * 100), // convert KES to cents
+            currency: 'KES',
+            callback_url: `${req.headers.origin}?payment=success`,
+            metadata: { donor_name: name }
+        }, {
+            headers: { 
+                Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const reference = response.data.data.reference;
+        const authUrl = response.data.data.authorization_url;
+
+        // Log the pending transaction in the database
+        await pool.query('INSERT INTO donations (name, phone, amount, checkout_request_id, status, payment_method) VALUES (?, ?, ?, ?, ?, ?)', 
+                [name, email, amount, reference, 'pending', 'visa']);
+
+        res.json({ url: authUrl });
+    } catch (error) {
+        console.error("Paystack Error:", error.response?.data || error.message);
+        res.status(500).json({ error: 'Failed to initialize Visa payment gateway.' });
+    }
+});
+
+// 5. SECURE ADMIN ENDPOINTS
 apiRouter.get('/admin/dashboard', authenticateToken, async (req, res) => {
     try {
         const [donations] = await pool.query('SELECT * FROM donations ORDER BY created_at DESC');

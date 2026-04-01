@@ -46,7 +46,7 @@
 
         /* Toasts & Loaders */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { padding: 14px 24px; border-radius: 10px; color: white; font-weight: 500; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); opacity: 0; transform: translateX(100%); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); display: flex; items-center; gap: 8px; }
+        .toast { padding: 14px 24px; border-radius: 10px; color: white; font-weight: 500; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); opacity: 0; transform: translateX(100%); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); display: flex; align-items: center; gap: 8px; }
         .toast.show { opacity: 1; transform: translateX(0); }
         .toast.success { background: linear-gradient(to right, #10b981, #059669); }
         .toast.error { background: linear-gradient(to right, #ef4444, #dc2626); }
@@ -71,6 +71,11 @@
         .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0, 1, 0, 1); }
         .faq-item.active .faq-answer { max-height: 500px; transition: max-height 0.6s ease-in-out; }
         .faq-item.active .faq-icon { transform: rotate(180deg); color: #2a9d8f; }
+
+        /* Payment Toggle Button Styles */
+        .pay-method-btn { transition: all 0.3s ease; }
+        .pay-method-btn.active { border-color: #2a9d8f; background-color: #f0fdf4; color: #2a9d8f; }
+        .pay-method-btn.active-visa { border-color: #6772e5; background-color: #f3f4f6; color: #6772e5; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased flex flex-col min-h-screen selection:bg-brand-green selection:text-white">
@@ -113,7 +118,7 @@
             <a href="javascript:void(0)" onclick="switchPage('gallery')" class="block font-semibold text-gray-700 p-2 hover:bg-gray-50 rounded-lg">Media Gallery</a>
             <a href="javascript:void(0)" onclick="switchPage('news')" class="block font-semibold text-gray-700 p-2 hover:bg-gray-50 rounded-lg">News & Events</a>
             <a href="javascript:void(0)" onclick="switchPage('contact')" class="block font-semibold text-gray-700 p-2 hover:bg-gray-50 rounded-lg">Contact Us</a>
-            <button onclick="switchPage('donate')" class="w-full bg-brand-green text-white py-3.5 rounded-xl font-bold mt-2 shadow-md flex justify-center items-center gap-2"><i class="fas fa-heart animate-pulse"></i> Donate via M-Pesa</button>
+            <button onclick="switchPage('donate')" class="w-full bg-brand-green text-white py-3.5 rounded-xl font-bold mt-2 shadow-md flex justify-center items-center gap-2"><i class="fas fa-heart animate-pulse"></i> Donate via M-Pesa or Card</button>
         </div>
     </header>
 
@@ -174,12 +179,14 @@
                     <div class="animate-marquee whitespace-nowrap flex items-center gap-16 px-8 opacity-60 grayscale group-hover:grayscale-0 transition-all duration-500">
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-hands-helping text-brand-green mr-2"></i> Local Govt</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-building text-brand-blue mr-2"></i> Safaricom M-Pesa</span>
+                        <span class="text-2xl font-serif font-bold text-gray-800"><i class="fab fa-cc-visa text-blue-800 mr-2"></i> Visa</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-university text-green-600 mr-2"></i> Co-op Bank</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-dove text-brand-green mr-2"></i> Peace Corps</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-globe text-brand-blue mr-2"></i> Global Giving</span>
                         <!-- Duplicate for infinite loop -->
                         <span class="text-2xl font-serif font-bold text-gray-800 ml-16"><i class="fas fa-hands-helping text-brand-green mr-2"></i> Local Govt</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-building text-brand-blue mr-2"></i> Safaricom M-Pesa</span>
+                        <span class="text-2xl font-serif font-bold text-gray-800"><i class="fab fa-cc-visa text-blue-800 mr-2"></i> Visa</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-university text-green-600 mr-2"></i> Co-op Bank</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-dove text-brand-green mr-2"></i> Peace Corps</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-globe text-brand-blue mr-2"></i> Global Giving</span>
@@ -307,7 +314,7 @@
                     </div>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-                        <!-- CEO / Founder (Using image_d74a3e.png) -->
+                        <!-- CEO / Founder -->
                         <div class="group text-center">
                             <div class="w-48 h-48 mx-auto rounded-full overflow-hidden mb-5 shadow-xl border-[6px] border-brand-blue group-hover:scale-105 transition-all duration-500 relative">
                                 <img src="image_d74a3e.png" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 bg-gray-100" alt="CEO & Founder" onerror="this.src='https://lh3.googleusercontent.com/p/AF1QipNyzr8VKAQEWnJ4VfycxYNfzHgdfubfViMtVAb3=w243-h244-n-k-no-nu'">
@@ -317,7 +324,7 @@
                             <div class="flex justify-center gap-3 text-gray-400"><a href="#" class="hover:text-brand-blue"><i class="fab fa-linkedin text-lg"></i></a></div>
                         </div>
                         
-                        <!-- Co-Founder (Using image_292731.jpg) -->
+                        <!-- Co-Founder -->
                         <div class="group text-center">
                             <div class="w-48 h-48 mx-auto rounded-full overflow-hidden mb-5 shadow-xl border-[6px] border-brand-green group-hover:scale-105 transition-all duration-500 relative">
                                 <img src="image_292731.jpg" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 bg-gray-100" alt="Co-Founder" onerror="this.src='https://lh3.googleusercontent.com/p/AF1QipOPb9dm2B0wgqkIrTvFFJusxBqh2DAWGu2BDTLX=s1360-w1360-h1020-rw'">
@@ -597,7 +604,7 @@
         </section>
 
         <!-- ========================================== -->
-        <!-- DONATE SECTION (With Progress Bar) -->
+        <!-- DONATE SECTION (Fully Updated for Visa & M-Pesa) -->
         <!-- ========================================== -->
         <section id="donate" class="page-section bg-[url('https://www.transparenttextures.com/patterns/food.png')] py-24">
             <div class="container mx-auto px-4">
@@ -620,32 +627,38 @@
                         </div>
                     </div>
 
-                    <!-- Form Area -->
+                    <!-- Form Area with Payment Toggle -->
                     <div class="p-8 md:p-10">
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="font-bold text-gray-800 text-lg">Secure Donation</h3>
                             <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
                                 <button class="px-3 py-1 bg-white shadow-sm rounded text-xs font-bold text-gray-800">KES</button>
-                                <button class="px-3 py-1 text-gray-400 rounded text-xs font-bold cursor-not-allowed" title="USD coming soon">USD</button>
                             </div>
                         </div>
 
-                        <form id="donateForm" onsubmit="handleDonation(event)" class="space-y-5">
-                            <div class="flex gap-3 mb-2">
-                                <button type="button" class="flex-1 py-3 border-2 border-brand-green bg-green-50 text-brand-green rounded-xl font-bold text-sm shadow-sm transition-all"><i class="fas fa-mobile-alt mr-2 text-lg align-middle"></i> M-Pesa</button>
-                                <button type="button" class="flex-1 py-3 border border-gray-200 bg-gray-50 text-gray-400 rounded-xl font-bold text-sm cursor-not-allowed" title="Bank Transfer coming soon"><i class="fas fa-university mr-2 text-lg align-middle"></i> Bank</button>
-                            </div>
+                        <!-- Payment Method Toggles -->
+                        <div class="flex gap-3 mb-6">
+                            <button type="button" onclick="setPaymentMethod('mpesa')" id="btn-mpesa" class="pay-method-btn active flex-1 py-4 border-2 rounded-xl font-bold text-sm shadow-sm transition-all text-gray-500 border-gray-200">
+                                <i class="fas fa-mobile-alt mr-2 text-lg align-middle"></i> M-Pesa
+                            </button>
+                            <button type="button" onclick="setPaymentMethod('visa')" id="btn-visa" class="pay-method-btn flex-1 py-4 border-2 rounded-xl font-bold text-sm shadow-sm transition-all text-gray-500 border-gray-200">
+                                <i class="fab fa-cc-visa mr-1 text-lg align-middle text-[#1434CB]"></i> <i class="fab fa-cc-mastercard mr-2 text-lg align-middle text-[#FF5F00]"></i> Card
+                            </button>
+                        </div>
 
+                        <form id="donateForm" onsubmit="handleDonation(event)" class="space-y-5">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Donor Name</label>
-                                <input type="text" id="don_name" required placeholder="John Doe" class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-brand-green focus:ring-2 focus:ring-brand-green/20 outline-none transition-all">
+                                <input type="text" id="don_name" required placeholder="John Doe" class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 outline-none transition-all">
                             </div>
                             
-                            <div>
+                            <!-- Dynamic Input Container (Phone vs Email) -->
+                            <div id="dynamic-contact-field">
+                                <!-- Default is M-Pesa phone -->
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">M-Pesa Number</label>
                                 <div class="relative">
                                     <span class="absolute left-4 top-4 text-gray-500 font-bold border-r border-gray-300 pr-3">+254</span>
-                                    <input type="tel" id="don_phone" required placeholder="712345678" class="w-full pl-[4.5rem] pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-brand-green focus:ring-2 focus:ring-brand-green/20 outline-none font-medium transition-all">
+                                    <input type="tel" id="don_contact" required placeholder="712345678" class="w-full pl-[4.5rem] pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium transition-all focus:border-brand-green">
                                 </div>
                             </div>
 
@@ -653,12 +666,12 @@
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Amount (KES)</label>
                                 <div class="relative">
                                     <span class="absolute left-4 top-4 text-gray-500 font-bold border-r border-gray-300 pr-3">KES</span>
-                                    <input type="number" id="don_amount" required min="10" placeholder="1000" class="w-full pl-[4.5rem] pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-brand-green focus:ring-2 focus:ring-brand-green/20 outline-none font-black text-xl text-gray-800 transition-all">
+                                    <input type="number" id="don_amount" required min="10" placeholder="1000" class="w-full pl-[4.5rem] pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white outline-none font-black text-xl text-gray-800 transition-all">
                                 </div>
                             </div>
 
-                            <button type="submit" id="btn-donate" class="w-full bg-brand-green hover:bg-brand-greenDark text-white font-bold py-4.5 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center text-lg mt-6 h-14">
-                                <span class="btn-text">Send Support Now</span>
+                            <button type="submit" id="btn-donate" class="w-full bg-brand-green hover:bg-brand-greenDark text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center text-lg mt-6 h-14">
+                                <span class="btn-text" id="donate-btn-text">Send M-Pesa Request</span>
                                 <div class="loader"></div>
                             </button>
                         </form>
@@ -669,8 +682,14 @@
                                 <i class="fas fa-spinner fa-spin text-brand-green text-3xl"></i>
                             </div>
                             <h4 class="font-black text-lg text-brand-greenDark mb-1">Check your phone!</h4>
-                            <p class="text-sm text-gray-600 mb-6 leading-relaxed">We've sent an STK push to your device. Enter your M-Pesa PIN to authorize the Co-operative Bank deposit.</p>
-                            <button type="button" onclick="window.finishDonation()" class="bg-gray-900 text-white font-bold py-3 px-8 rounded-xl text-sm hover:bg-black transition-all shadow-md w-full">I have entered my PIN</button>
+                            <p class="text-sm text-gray-600 mb-6 leading-relaxed">We've sent an STK push to your device. Enter your M-Pesa PIN to authorize the deposit.</p>
+                            <button type="button" onclick="window.finishMpesaDonation()" class="bg-gray-900 text-white font-bold py-3 px-8 rounded-xl text-sm hover:bg-black transition-all shadow-md w-full">I have entered my PIN</button>
+                        </div>
+                        
+                        <!-- Security Badge for Card Payments -->
+                        <div class="mt-8 text-center text-xs text-gray-400 font-bold flex justify-center items-center gap-4">
+                            <span><i class="fas fa-lock"></i> SSL Secured</span>
+                            <span id="pci-badge" class="hidden text-[#6772e5]"><i class="fas fa-shield-check"></i> PCI-DSS Compliant</span>
                         </div>
 
                         <!-- Manual Bank Details Toggle -->
@@ -877,13 +896,13 @@
                                 <h3 class="font-bold text-gray-800 text-lg flex items-center gap-2"><i class="fas fa-list-ul text-brand-green"></i> Recent Transactions</h3>
                                 <div class="relative w-full sm:w-64">
                                     <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
-                                    <input type="text" id="search-donations" onkeyup="window.filterTable('dash-table-donations', this.value)" placeholder="Search donor or phone..." class="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue">
+                                    <input type="text" id="search-donations" onkeyup="window.filterTable('dash-table-donations', this.value)" placeholder="Search donor or contact..." class="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue">
                                 </div>
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left text-sm whitespace-nowrap">
                                     <thead class="bg-gray-50 text-gray-500 font-bold uppercase text-[10px] tracking-wider border-b border-gray-200">
-                                        <tr><th class="p-5">Donor Info</th><th class="p-5">Contact</th><th class="p-5">Amount (KES)</th><th class="p-5">Status</th><th class="p-5 text-right">Date</th></tr>
+                                        <tr><th class="p-5">Donor Info</th><th class="p-5">Contact</th><th class="p-5">Method</th><th class="p-5">Amount (KES)</th><th class="p-5">Status</th><th class="p-5 text-right">Date</th></tr>
                                     </thead>
                                     <tbody id="dash-table-donations" class="divide-y divide-gray-100 text-gray-600">
                                         <!-- Populated via JS -->
@@ -1090,6 +1109,7 @@
     <script>
         // Set this strictly to your deployed Node.js backend URL on Render
         const API_BASE = 'https://naropilchildrens.onrender.com/api';
+        let currentPaymentMethod = 'mpesa'; // Default state for checkout
         
         document.getElementById('current-year').innerText = new Date().getFullYear();
 
@@ -1102,7 +1122,6 @@
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('active');
-                    // Check if it's the impact section to trigger counters
                     if (entry.target.querySelector('#counter-grid') && !entry.target.dataset.counted) {
                         triggerCounters();
                         entry.target.dataset.counted = "true";
@@ -1114,7 +1133,7 @@
         // Function to animate numbers
         function triggerCounters() {
             const counters = document.querySelectorAll('.counter-value');
-            const speed = 200; // lower is slower
+            const speed = 200; 
             counters.forEach(counter => {
                 const updateCount = () => {
                     const target = +counter.getAttribute('data-target');
@@ -1131,11 +1150,32 @@
             });
         }
 
+        // --- PUBLIC ACTIONS (ON LOAD) ---
+        window.onload = () => {
+            // Check for Paystack success/cancel in URL params
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('payment') === 'success') {
+                setTimeout(() => window.showToast('Card Payment Successful! Thank you for your support.', 'success'), 500);
+                window.history.replaceState({}, document.title, window.location.pathname); 
+            } else if (urlParams.get('payment') === 'cancel') {
+                setTimeout(() => window.showToast('Payment was cancelled. You can try again.', 'error'), 500);
+                window.switchPage('donate');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            document.getElementById('home').querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+            loadPublicData();
+            if(localStorage.getItem('adminEmail')) {
+                document.getElementById('admin-display-name').innerText = localStorage.getItem('adminEmail');
+                const badge = document.getElementById('badge-msgs');
+                if(badge) badge.innerText = '?'; 
+            }
+        };
+
         // --- UI FUNCTIONS ---
         window.switchPage = function(pageId) {
             document.querySelectorAll('.page-section').forEach(el => {
                 el.classList.remove('active');
-                // reset reveal animations when page hides
                 el.querySelectorAll('.reveal').forEach(r => r.classList.remove('active'));
             });
             const footer = document.getElementById('main-footer');
@@ -1160,16 +1200,12 @@
 
             const activeSection = document.getElementById(pageId);
             activeSection.classList.add('active');
-            
-            // Re-observe elements for animation in the new section
             activeSection.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
             document.getElementById('mobile-menu').classList.add('hidden');
             document.getElementById('menu-icon').className = 'fas fa-bars';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // Scroll listener for FAB and Header
         window.addEventListener('scroll', () => {
             const fab = document.getElementById('fab-top');
             const header = document.getElementById('public-header');
@@ -1243,8 +1279,8 @@
             let filename = '';
 
             if (type === 'donations') {
-                data = window.globalDonationsData.map(d => [d.name, d.phone, d.amount, d.status, new Date(d.created_at).toLocaleDateString()]);
-                headers = ['Name', 'Phone', 'Amount (KES)', 'Status', 'Date'];
+                data = window.globalDonationsData.map(d => [d.name, d.phone, d.payment_method, d.amount, d.status, new Date(d.created_at).toLocaleDateString()]);
+                headers = ['Name', 'Contact', 'Method', 'Amount (KES)', 'Status', 'Date'];
                 filename = 'naropil_donations_export.csv';
             } else if (type === 'subscribers') {
                 data = window.globalSubscribersData.map(s => [s.email, new Date(s.created_at).toLocaleDateString()]);
@@ -1254,10 +1290,7 @@
 
             if(data.length === 0) { window.showToast('No data to export', 'error'); return; }
 
-            // Construct CSV String
             let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + data.map(e => e.join(",")).join("\n");
-            
-            // Download
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
@@ -1281,7 +1314,6 @@
                 const res = await fetch(`${API_BASE}${endpoint}`, config);
                 const contentType = res.headers.get("content-type");
                 let data = contentType && contentType.includes("application/json") ? await res.json() : await res.text();
-
                 if(!res.ok) throw new Error((typeof data === 'object' && data.error) ? data.error : `HTTP ${res.status}: Backend Error`);
                 return data;
             } catch (err) {
@@ -1290,31 +1322,112 @@
             }
         }
 
-        // --- PUBLIC ACTIONS ---
-        window.onload = () => {
-            // Setup initial section reveal
-            document.getElementById('home').querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+        // --- DONATION / VISA PAYMENT UI LOGIC ---
+        window.setPaymentMethod = function(method) {
+            currentPaymentMethod = method;
+            const btnMpesa = document.getElementById('btn-mpesa');
+            const btnVisa = document.getElementById('btn-visa');
+            const contactField = document.getElementById('dynamic-contact-field');
+            const donateBtn = document.getElementById('btn-donate');
+            const pciBadge = document.getElementById('pci-badge');
             
-            loadPublicData();
-            if(localStorage.getItem('adminEmail')) {
-                document.getElementById('admin-display-name').innerText = localStorage.getItem('adminEmail');
-                const badge = document.getElementById('badge-msgs');
-                if(badge) badge.innerText = '?'; // Just a placeholder until dashboard loads
+            document.getElementById('don_contact').value = ''; // Reset input to prevent mixing formats
+
+            if (method === 'mpesa') {
+                btnMpesa.classList.add('active');
+                btnVisa.classList.remove('active-visa');
+                
+                contactField.innerHTML = `
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">M-Pesa Number</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-4 text-gray-500 font-bold border-r border-gray-300 pr-3">+254</span>
+                        <input type="tel" id="don_contact" required placeholder="712345678" class="w-full pl-[4.5rem] pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-brand-green outline-none font-medium transition-all">
+                    </div>`;
+                donateBtn.className = "w-full bg-brand-green hover:bg-brand-greenDark text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center text-lg mt-6 h-14";
+                document.getElementById('donate-btn-text').innerText = "Send M-Pesa Request";
+                pciBadge.classList.add('hidden');
+                
+            } else if (method === 'visa') {
+                btnVisa.classList.add('active-visa');
+                btnMpesa.classList.remove('active');
+                
+                contactField.innerHTML = `
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Email Address</label>
+                    <input type="email" id="don_contact" required placeholder="john@example.com" class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-[#6772e5] outline-none font-medium transition-all">
+                `;
+                donateBtn.className = "w-full bg-[#6772e5] hover:bg-[#5469d4] text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center text-lg mt-6 h-14";
+                document.getElementById('donate-btn-text').innerHTML = 'Proceed to Secure Checkout <i class="fas fa-lock ml-2"></i>';
+                pciBadge.classList.remove('hidden');
             }
         };
 
+        window.handleDonation = async (e) => {
+            e.preventDefault();
+            window.setLoading('btn-donate', true);
+            
+            const name = document.getElementById('don_name').value;
+            const contact = document.getElementById('don_contact').value;
+            const amount = document.getElementById('don_amount').value;
+
+            if (Number(amount) < 10) {
+                window.showToast('Amount must be at least 10 KES', 'error');
+                window.setLoading('btn-donate', false);
+                return;
+            }
+
+            try {
+                if (currentPaymentMethod === 'mpesa') {
+                    // M-PESA LOGIC
+                    let rawPhone = contact.replace(/\s+/g, '');
+                    if (rawPhone.startsWith('0')) rawPhone = rawPhone.substring(1);
+                    if (rawPhone.length !== 9) throw new Error('Enter a valid 9-digit number after +254');
+                    
+                    await apiCall('/tuma/donate', 'POST', { name, amount, phone: '+254' + rawPhone });
+                    document.getElementById('mpesa-instructions').classList.remove('hidden');
+                    document.getElementById('btn-donate').classList.add('hidden');
+                    window.showToast('STK Push Sent. Check your phone.');
+                    
+                } else if (currentPaymentMethod === 'visa') {
+                    // VISA/PAYSTACK LOGIC
+                    const res = await apiCall('/paystack/donate', 'POST', { name, amount, email: contact });
+                    window.location.href = res.url; // Redirect to Paystack's Secure Hosted Checkout Page
+                }
+            } catch (err) {
+                window.showToast(err.message, 'error');
+            } finally {
+                window.setLoading('btn-donate', false);
+            }
+        };
+
+        window.finishMpesaDonation = () => {
+            document.getElementById('donateForm').reset();
+            document.getElementById('mpesa-instructions').classList.add('hidden');
+            document.getElementById('btn-donate').classList.remove('hidden');
+            window.switchPage('home');
+            loadPublicData();
+            window.showToast('Thank you! Your transaction is processing on the blockchain.');
+        };
+
+        // --- FETCHING DATA ---
         async function loadPublicData() {
             try {
-                // Fetch Donations
                 apiCall('/public/donations').then(docs => {
                     const wall = document.getElementById('public-donation-wall');
                     if (wall) {
                         wall.innerHTML = docs.length ? '' : '<div class="col-span-full text-center text-gray-400 py-4">Be the first to donate today!</div>';
                         docs.forEach(d => {
                             const ini = d.name.split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2);
+                            // Differentiate icon based on payment method
+                            const iconHtml = d.payment_method === 'visa' 
+                                ? `<i class="fab fa-cc-visa text-[10px] absolute -bottom-1 -right-1 bg-white text-[#6772e5] rounded-full p-0.5 shadow-sm border border-gray-100"></i>`
+                                : `<i class="fas fa-mobile-alt text-[9px] absolute -bottom-1 -right-1 bg-white text-brand-green rounded-full px-1 shadow-sm border border-gray-100"></i>`;
+
                             wall.innerHTML += `
                             <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:-translate-y-1 transition-transform">
-                                <div class="w-12 h-12 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center font-bold text-sm mb-3 border border-brand-green/20">${ini}</div>
+                                <div class="relative w-12 h-12 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center font-bold text-sm mb-3 border border-brand-green/20">
+                                    ${ini}
+                                    ${iconHtml}
+                                </div>
                                 <p class="text-sm font-bold text-gray-800 line-clamp-1 mb-1">${d.name}</p>
                                 <p class="text-xs text-brand-green font-black bg-green-50 px-2 py-1 rounded">KES ${Number(d.amount).toLocaleString()}</p>
                             </div>`;
@@ -1325,7 +1438,6 @@
                     if (wall) wall.innerHTML = '<div class="col-span-full text-center text-red-400 text-sm py-4"><i class="fas fa-exclamation-triangle mb-2 text-2xl"></i><br>Database connection failed.</div>';
                 });
 
-                // Fetch Gallery
                 apiCall('/public/gallery').then(docs => {
                     const grid = document.getElementById('public-gallery-grid');
                     const homeGrid = document.getElementById('public-home-gallery');
@@ -1337,14 +1449,8 @@
                         homeGrid.innerHTML = docs.length ? '' : '<div class="col-span-full text-center text-gray-400 py-10 bg-gray-50 rounded-2xl border border-gray-100">No recent highlights.</div>';
                         docs.slice(0, 4).forEach(d => { homeGrid.innerHTML += `<div class="aspect-square rounded-2xl overflow-hidden shadow-md group relative cursor-pointer" onclick="window.openLightbox('${d.url}', '${d.caption.replace(/'/g, "\\'")}')"><img src="${d.url}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"><div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4"><p class="text-white text-xs font-bold translate-y-2 group-hover:translate-y-0 transition-transform">${d.caption}</p></div></div>`; });
                     }
-                }).catch(err => {
-                    const grid = document.getElementById('public-gallery-grid');
-                    const homeGrid = document.getElementById('public-home-gallery');
-                    if(grid) grid.innerHTML = '<div class="col-span-full text-center text-red-400 text-sm py-10">Database connection failed.</div>';
-                    if(homeGrid) homeGrid.innerHTML = '<div class="col-span-full text-center text-red-400 text-sm py-10 bg-gray-50 rounded-2xl border border-gray-100">Database connection failed.</div>';
-                });
+                }).catch(err => {});
 
-                // Fetch Events
                 apiCall('/public/events').then(docs => {
                     const grid = document.getElementById('public-news-grid');
                     const homeGrid = document.getElementById('public-home-news');
@@ -1372,12 +1478,7 @@
                             </div>`;
                         });
                     }
-                }).catch(err => {
-                    const grid = document.getElementById('public-news-grid');
-                    const homeGrid = document.getElementById('public-home-news');
-                    if(grid) grid.innerHTML = '<div class="col-span-full text-center text-red-400 text-sm py-10">Database connection failed.</div>';
-                    if(homeGrid) homeGrid.innerHTML = '<div class="col-span-full text-center text-red-400 text-sm py-10 bg-gray-50 rounded-2xl border border-gray-100">Database connection failed.</div>';
-                });
+                }).catch(err => {});
             } catch (err) { console.error('Error loading public data'); }
         }
 
@@ -1411,54 +1512,6 @@
             finally { window.setLoading('btn-volunteer', false); }
         };
 
-        window.finishDonation = () => {
-            document.getElementById('donateForm').reset();
-            document.getElementById('mpesa-instructions').classList.add('hidden');
-            document.getElementById('btn-donate').classList.remove('hidden');
-            window.switchPage('home');
-            loadPublicData();
-            window.showToast('Thank you! Your transaction is processing on the blockchain.');
-        };
-
-        window.handleDonation = async (e) => {
-            e.preventDefault();
-            window.setLoading('btn-donate', true);
-            const amount = document.getElementById('don_amount').value;
-            const name = document.getElementById('don_name').value;
-            let rawPhone = document.getElementById('don_phone').value.replace(/\s+/g, '');
-            
-            if (Number(amount) < 10) {
-                window.showToast('Amount must be at least 10 KES', 'error');
-                window.setLoading('btn-donate', false);
-                return;
-            }
-
-            // Sanitize phone number to strictly be +2547... or +2541...
-            if (rawPhone.startsWith('0')) rawPhone = rawPhone.substring(1);
-            if (rawPhone.startsWith('+254')) rawPhone = rawPhone.substring(4);
-            if (rawPhone.startsWith('254')) rawPhone = rawPhone.substring(3);
-            
-            if (rawPhone.length !== 9) {
-                window.showToast('Please enter a valid 9-digit number after +254', 'error');
-                window.setLoading('btn-donate', false);
-                return;
-            }
-
-            const formattedPhone = '+254' + rawPhone;
-            
-            try {
-                // NOTE: If you still get a 404 here, change '/tuma/donate' to '/tuma-pay' based on your server.js
-                await apiCall('/tuma/donate', 'POST', { name, amount, phone: formattedPhone });
-                document.getElementById('mpesa-instructions').classList.remove('hidden');
-                document.getElementById('btn-donate').classList.add('hidden');
-                window.showToast('STK Push Sent. Check your phone.');
-            } catch (err) {
-                console.error("Donation Error:", err);
-                // Make the error visible to the user so we know exactly what failed
-                window.showToast(err.message || 'Server error (404). Check backend routes.', 'error');
-            } finally { window.setLoading('btn-donate', false); }
-        };
-
         window.submitNewsletter = async (e) => {
             e.preventDefault();
             const isMain = e.target.id === 'nl_email_main' || e.target.querySelector('#nl_email_main');
@@ -1479,13 +1532,11 @@
         };
 
         // --- ADMIN ACTIONS (SECURE) ---
-
         window.handleLogin = async (e) => {
             e.preventDefault();
             window.setLoading('btn-login', true);
             const email = document.getElementById('login_email').value;
             const password = document.getElementById('login_password').value;
-            
             try {
                 const res = await apiCall('/auth/login', 'POST', { email, password });
                 localStorage.setItem('adminToken', res.token);
@@ -1493,11 +1544,8 @@
                 document.getElementById('admin-display-name').innerText = res.email;
                 window.showToast('Authentication Successful'); 
                 window.switchPage('dashboard');
-            } catch (err) {
-                window.showToast(err.message || 'Invalid credentials', 'error');
-            } finally {
-                window.setLoading('btn-login', false);
-            }
+            } catch (err) { window.showToast(err.message || 'Invalid credentials', 'error'); } 
+            finally { window.setLoading('btn-login', false); }
         };
 
         window.logout = () => { 
@@ -1554,8 +1602,6 @@
         window.loadDashboardData = async function() {
             try {
                 const data = await apiCall('/admin/dashboard');
-                
-                // Store globally for CSV exports
                 window.globalDonationsData = data.donations;
                 window.globalSubscribersData = data.subscribers;
 
@@ -1569,18 +1615,17 @@
                     const date = new Date(d.created_at).toLocaleString();
                     
                     let statusHtml = '';
-                    if (d.status === 'completed') {
-                        statusHtml = '<span class="text-green-600 bg-green-50 px-3 py-1 rounded-md text-[10px] font-bold uppercase border border-green-200"><i class="fas fa-check-circle mr-1"></i> Completed</span>';
-                    } else if (d.status === 'failed') {
-                        statusHtml = '<span class="text-red-600 bg-red-50 px-3 py-1 rounded-md text-[10px] font-bold uppercase border border-red-200"><i class="fas fa-times-circle mr-1"></i> Failed</span>';
-                    } else {
-                        statusHtml = '<span class="text-orange-500 bg-orange-50 px-3 py-1 rounded-md text-[10px] font-bold uppercase border border-orange-200"><i class="fas fa-clock mr-1"></i> Pending</span>';
-                    }
+                    if (d.status === 'completed') statusHtml = '<span class="text-green-600 bg-green-50 px-3 py-1 rounded-md text-[10px] font-bold uppercase border border-green-200"><i class="fas fa-check-circle mr-1"></i> Completed</span>';
+                    else if (d.status === 'failed') statusHtml = '<span class="text-red-600 bg-red-50 px-3 py-1 rounded-md text-[10px] font-bold uppercase border border-red-200"><i class="fas fa-times-circle mr-1"></i> Failed</span>';
+                    else statusHtml = '<span class="text-orange-500 bg-orange-50 px-3 py-1 rounded-md text-[10px] font-bold uppercase border border-orange-200"><i class="fas fa-clock mr-1"></i> Pending</span>';
+
+                    let methodHtml = d.payment_method === 'visa' ? '<span class="text-[#6772e5] font-bold text-xs"><i class="fab fa-cc-visa"></i> Card</span>' : '<span class="text-brand-green font-bold text-xs"><i class="fas fa-mobile-alt"></i> M-Pesa</span>';
 
                     tbodyD.innerHTML += `
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="p-5 font-bold text-gray-800">${d.name}</td>
                         <td class="p-5 text-gray-500 font-medium">${d.phone}</td>
+                        <td class="p-5">${methodHtml}</td>
                         <td class="p-5 font-black text-brand-green">KES ${Number(d.amount).toLocaleString()}</td>
                         <td class="p-5">${statusHtml}</td>
                         <td class="p-5 text-gray-400 text-right text-xs">${date}</td>
@@ -1588,7 +1633,7 @@
                 });
                 
                 document.getElementById('dash-total-donations').innerText = `KES ${total.toLocaleString()}`;
-                if(!data.donations.length) tbodyD.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-400 font-medium">No transaction records found.</td></tr>';
+                if(!data.donations.length) tbodyD.innerHTML = '<tr><td colspan="6" class="p-10 text-center text-gray-400 font-medium">No transaction records found.</td></tr>';
 
                 // Render Messages
                 const listM = document.getElementById('admin-messages-list');
