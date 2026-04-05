@@ -71,11 +71,6 @@
         .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0, 1, 0, 1); }
         .faq-item.active .faq-answer { max-height: 500px; transition: max-height 0.6s ease-in-out; }
         .faq-item.active .faq-icon { transform: rotate(180deg); color: #2a9d8f; }
-
-        /* Payment Toggle Button Styles */
-        .pay-method-btn { transition: all 0.3s ease; }
-        .pay-method-btn.active { border-color: #2a9d8f; background-color: #f0fdf4; color: #2a9d8f; }
-        .pay-method-btn.active-visa { border-color: #6772e5; background-color: #f3f4f6; color: #6772e5; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased flex flex-col min-h-screen selection:bg-brand-green selection:text-white">
@@ -118,7 +113,7 @@
             <a href="javascript:void(0)" onclick="switchPage('gallery')" class="block font-semibold text-gray-700 p-2 hover:bg-gray-50 rounded-lg">Media Gallery</a>
             <a href="javascript:void(0)" onclick="switchPage('news')" class="block font-semibold text-gray-700 p-2 hover:bg-gray-50 rounded-lg">News & Events</a>
             <a href="javascript:void(0)" onclick="switchPage('contact')" class="block font-semibold text-gray-700 p-2 hover:bg-gray-50 rounded-lg">Contact Us</a>
-            <button onclick="switchPage('donate')" class="w-full bg-brand-green text-white py-3.5 rounded-xl font-bold mt-2 shadow-md flex justify-center items-center gap-2"><i class="fas fa-heart animate-pulse"></i> Donate via M-Pesa or Card</button>
+            <button onclick="switchPage('donate')" class="w-full bg-brand-green text-white py-3.5 rounded-xl font-bold mt-2 shadow-md flex justify-center items-center gap-2"><i class="fas fa-heart animate-pulse"></i> Donate via M-Pesa</button>
         </div>
     </header>
 
@@ -179,14 +174,12 @@
                     <div class="animate-marquee whitespace-nowrap flex items-center gap-16 px-8 opacity-60 grayscale group-hover:grayscale-0 transition-all duration-500">
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-hands-helping text-brand-green mr-2"></i> Local Govt</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-building text-brand-blue mr-2"></i> Safaricom M-Pesa</span>
-                        <span class="text-2xl font-serif font-bold text-gray-800"><i class="fab fa-cc-visa text-blue-800 mr-2"></i> Visa</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-university text-green-600 mr-2"></i> Co-op Bank</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-dove text-brand-green mr-2"></i> Peace Corps</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-globe text-brand-blue mr-2"></i> Global Giving</span>
                         <!-- Duplicate for infinite loop -->
                         <span class="text-2xl font-serif font-bold text-gray-800 ml-16"><i class="fas fa-hands-helping text-brand-green mr-2"></i> Local Govt</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-building text-brand-blue mr-2"></i> Safaricom M-Pesa</span>
-                        <span class="text-2xl font-serif font-bold text-gray-800"><i class="fab fa-cc-visa text-blue-800 mr-2"></i> Visa</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-university text-green-600 mr-2"></i> Co-op Bank</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-dove text-brand-green mr-2"></i> Peace Corps</span>
                         <span class="text-2xl font-serif font-bold text-gray-800"><i class="fas fa-globe text-brand-blue mr-2"></i> Global Giving</span>
@@ -578,7 +571,7 @@
         </section>
 
         <!-- ========================================== -->
-        <!-- DONATE SECTION (Fully Updated for Visa & M-Pesa) -->
+        <!-- DONATE SECTION (M-Pesa Only) -->
         <!-- ========================================== -->
         <section id="donate" class="page-section bg-[url('https://www.transparenttextures.com/patterns/food.png')] py-24">
             <div class="container mx-auto px-4">
@@ -601,7 +594,7 @@
                         </div>
                     </div>
 
-                    <!-- Form Area with Payment Toggle -->
+                    <!-- Form Area -->
                     <div class="p-8 md:p-10">
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="font-bold text-gray-800 text-lg">Secure Donation</h3>
@@ -610,29 +603,23 @@
                             </div>
                         </div>
 
-                        <!-- Payment Method Toggles -->
-                        <div class="flex gap-3 mb-6">
-                            <button type="button" onclick="setPaymentMethod('mpesa')" id="btn-mpesa" class="pay-method-btn active flex-1 py-4 border-2 rounded-xl font-bold text-sm shadow-sm transition-all text-gray-500 border-gray-200">
-                                <i class="fas fa-mobile-alt mr-2 text-lg align-middle"></i> M-Pesa
-                            </button>
-                            <button type="button" onclick="setPaymentMethod('visa')" id="btn-visa" class="pay-method-btn flex-1 py-4 border-2 rounded-xl font-bold text-sm shadow-sm transition-all text-gray-500 border-gray-200">
-                                <i class="fab fa-cc-visa mr-1 text-lg align-middle text-[#1434CB]"></i> <i class="fab fa-cc-mastercard mr-2 text-lg align-middle text-[#FF5F00]"></i> Card
-                            </button>
+                        <!-- Payment Method Indicator -->
+                        <div class="mb-6 flex items-center gap-2 text-brand-green font-bold bg-green-50 p-4 rounded-xl border border-green-100">
+                            <i class="fas fa-mobile-alt text-xl"></i> <span>M-Pesa Payment Processing</span>
                         </div>
 
                         <form id="donateForm" onsubmit="handleDonation(event)" class="space-y-5">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Donor Name</label>
-                                <input type="text" id="don_name" required placeholder="John Doe" class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 outline-none transition-all">
+                                <input type="text" id="don_name" required placeholder="John Doe" class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-brand-green focus:ring-2 outline-none transition-all">
                             </div>
                             
-                            <!-- Dynamic Input Container (Phone vs Email) -->
-                            <div id="dynamic-contact-field">
-                                <!-- Default is M-Pesa phone -->
+                            <!-- Static M-Pesa Input Field -->
+                            <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">M-Pesa Number</label>
                                 <div class="relative">
                                     <span class="absolute left-4 top-4 text-gray-500 font-bold border-r border-gray-300 pr-3">+254</span>
-                                    <input type="tel" id="don_contact" required placeholder="712345678" class="w-full pl-[4.5rem] pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium transition-all focus:border-brand-green">
+                                    <input type="tel" id="don_contact" required placeholder="712345678" class="w-full pl-[4.5rem] pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium transition-all focus:bg-white focus:border-brand-green focus:ring-2">
                                 </div>
                             </div>
 
@@ -640,12 +627,12 @@
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Amount (KES)</label>
                                 <div class="relative">
                                     <span class="absolute left-4 top-4 text-gray-500 font-bold border-r border-gray-300 pr-3">KES</span>
-                                    <input type="number" id="don_amount" required min="10" placeholder="1000" class="w-full pl-[4.5rem] pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white outline-none font-black text-xl text-gray-800 transition-all">
+                                    <input type="number" id="don_amount" required min="10" placeholder="1000" class="w-full pl-[4.5rem] pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-brand-green focus:ring-2 outline-none font-black text-xl text-gray-800 transition-all">
                                 </div>
                             </div>
 
                             <button type="submit" id="btn-donate" class="w-full bg-brand-green hover:bg-brand-greenDark text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center text-lg mt-6 h-14">
-                                <span class="btn-text" id="donate-btn-text">Send M-Pesa Request</span>
+                                <span class="btn-text">Send M-Pesa Request</span>
                                 <div class="loader"></div>
                             </button>
                         </form>
@@ -660,10 +647,9 @@
                             <button type="button" onclick="window.finishMpesaDonation()" class="bg-gray-900 text-white font-bold py-3 px-8 rounded-xl text-sm hover:bg-black transition-all shadow-md w-full">I have entered my PIN</button>
                         </div>
                         
-                        <!-- Security Badge for Card Payments -->
+                        <!-- Security Badge -->
                         <div class="mt-8 text-center text-xs text-gray-400 font-bold flex justify-center items-center gap-4">
                             <span><i class="fas fa-lock"></i> SSL Secured</span>
-                            <span id="pci-badge" class="hidden text-[#6772e5]"><i class="fas fa-shield-check"></i> PCI-DSS Compliant</span>
                         </div>
 
                         <!-- Manual Bank Details Toggle -->
@@ -1083,7 +1069,6 @@
     <script>
         // Set this strictly to your deployed Node.js backend URL on Render
         const API_BASE = 'https://naropilchildrens.onrender.com/api';
-        let currentPaymentMethod = 'mpesa'; // Default state for checkout
         
         document.getElementById('current-year').innerText = new Date().getFullYear();
 
@@ -1126,17 +1111,6 @@
 
         // --- PUBLIC ACTIONS (ON LOAD) ---
         window.onload = () => {
-            // Check for Paystack success/cancel in URL params
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('payment') === 'success') {
-                setTimeout(() => window.showToast('Card Payment Successful! Thank you for your support.', 'success'), 500);
-                window.history.replaceState({}, document.title, window.location.pathname); 
-            } else if (urlParams.get('payment') === 'cancel') {
-                setTimeout(() => window.showToast('Payment was cancelled. You can try again.', 'error'), 500);
-                window.switchPage('donate');
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-
             document.getElementById('home').querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
             loadPublicData();
             if(localStorage.getItem('adminEmail')) {
@@ -1296,45 +1270,7 @@
             }
         }
 
-        // --- DONATION / VISA PAYMENT UI LOGIC ---
-        window.setPaymentMethod = function(method) {
-            currentPaymentMethod = method;
-            const btnMpesa = document.getElementById('btn-mpesa');
-            const btnVisa = document.getElementById('btn-visa');
-            const contactField = document.getElementById('dynamic-contact-field');
-            const donateBtn = document.getElementById('btn-donate');
-            const pciBadge = document.getElementById('pci-badge');
-            
-            document.getElementById('don_contact').value = ''; // Reset input to prevent mixing formats
-
-            if (method === 'mpesa') {
-                btnMpesa.classList.add('active');
-                btnVisa.classList.remove('active-visa');
-                
-                contactField.innerHTML = `
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">M-Pesa Number</label>
-                    <div class="relative">
-                        <span class="absolute left-4 top-4 text-gray-500 font-bold border-r border-gray-300 pr-3">+254</span>
-                        <input type="tel" id="don_contact" required placeholder="712345678" class="w-full pl-[4.5rem] pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-brand-green outline-none font-medium transition-all">
-                    </div>`;
-                donateBtn.className = "w-full bg-brand-green hover:bg-brand-greenDark text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center text-lg mt-6 h-14";
-                document.getElementById('donate-btn-text').innerText = "Send M-Pesa Request";
-                pciBadge.classList.add('hidden');
-                
-            } else if (method === 'visa') {
-                btnVisa.classList.add('active-visa');
-                btnMpesa.classList.remove('active');
-                
-                contactField.innerHTML = `
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Email Address</label>
-                    <input type="email" id="don_contact" required placeholder="john@example.com" class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-[#6772e5] outline-none font-medium transition-all">
-                `;
-                donateBtn.className = "w-full bg-[#6772e5] hover:bg-[#5469d4] text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center text-lg mt-6 h-14";
-                document.getElementById('donate-btn-text').innerHTML = 'Proceed to Secure Checkout <i class="fas fa-lock ml-2"></i>';
-                pciBadge.classList.remove('hidden');
-            }
-        };
-
+        // --- DONATION LOGIC (M-PESA ONLY) ---
         window.handleDonation = async (e) => {
             e.preventDefault();
             window.setLoading('btn-donate', true);
@@ -1350,22 +1286,16 @@
             }
 
             try {
-                if (currentPaymentMethod === 'mpesa') {
-                    // M-PESA LOGIC
-                    let rawPhone = contact.replace(/\s+/g, '');
-                    if (rawPhone.startsWith('0')) rawPhone = rawPhone.substring(1);
-                    if (rawPhone.length !== 9) throw new Error('Enter a valid 9-digit number after +254');
-                    
-                    await apiCall('/tuma/donate', 'POST', { name, amount, phone: '+254' + rawPhone });
-                    document.getElementById('mpesa-instructions').classList.remove('hidden');
-                    document.getElementById('btn-donate').classList.add('hidden');
-                    window.showToast('STK Push Sent. Check your phone.');
-                    
-                } else if (currentPaymentMethod === 'visa') {
-                    // VISA/PAYSTACK LOGIC
-                    const res = await apiCall('/paystack/donate', 'POST', { name, amount, email: contact });
-                    window.location.href = res.url; // Redirect to Paystack's Secure Hosted Checkout Page
-                }
+                // M-PESA LOGIC
+                let rawPhone = contact.replace(/\s+/g, '');
+                if (rawPhone.startsWith('0')) rawPhone = rawPhone.substring(1);
+                if (rawPhone.length !== 9) throw new Error('Enter a valid 9-digit number after +254');
+                
+                await apiCall('/tuma/donate', 'POST', { name, amount, phone: '+254' + rawPhone });
+                document.getElementById('mpesa-instructions').classList.remove('hidden');
+                document.getElementById('btn-donate').classList.add('hidden');
+                window.showToast('STK Push Sent. Check your phone.');
+                
             } catch (err) {
                 window.showToast(err.message, 'error');
             } finally {
