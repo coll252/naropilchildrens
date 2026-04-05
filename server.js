@@ -9,9 +9,27 @@ require('dotenv').config();
 
 const app = express();
 
-// Secure CORS policy: Only allow requests from your live frontend on Render
+// --- CORS POLICY UPDATE ---
+// Allow requests from all your official domains (and local testing)
+const allowedOrigins = [
+    'https://naropilchildrensfoundation.com',
+    'https://www.naropilchildrensfoundation.com',
+    'https://naropil-frontend.onrender.com',
+    'http://localhost:3000' // Useful if you ever run the frontend locally
+];
+
 app.use(cors({
-    origin: 'https://naropil-frontend.onrender.com'
+    origin: function (origin, callback) {
+        // allow requests with no origin (like mobile apps, curl, or webhooks)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) === -1) {
+            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
+    credentials: true
 }));
 
 // Parse JSON bodies globally
