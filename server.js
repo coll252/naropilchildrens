@@ -5,11 +5,22 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const crypto = require('crypto');
+const path = require('path'); // Added to safely handle file paths (like sitemap)
 require('dotenv').config();
 
 const app = express();
 
-// Secure CORS policy: Allow requests from both the Render URL and the new Custom Domain
+// --- 1. FORCE HTTPS MIDDLEWARE (For Render & Google Indexing) ---
+app.use((req, res, next) => {
+    // Render passes the original protocol in this header.
+    // If someone visits via http://, we immediately redirect them to https://
+    if (req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] === 'http') {
+        return res.redirect(`https://${req.headers.host}${req.url}`);
+    }
+    next();
+});
+
+// --- 2. SECURE CORS POLICY ---
 app.use(cors({
     origin: [
         'https://naropil-frontend.onrender.com',
@@ -20,9 +31,18 @@ app.use(cors({
 
 // Parse JSON bodies globally
 app.use(express.json());
+
+// Serve static files from the 'public' folder
 app.use(express.static('public'));
 
-// --- PAYSTACK WEBHOOK (Visa/Mastercard) ---
+// --- 3. SITEMAP ROUTE ---
+// This ensures that if sitemap.xml is placed right next to this server file, 
+// Google can access it perfectly at naropilchildrensfoundation.com/sitemap.xml
+app.get('/sitemap.xml', (req, res) => {
+    res.sendFile(path.join(__dirname, 'sitemap.xml'));
+});
+
+// --- 4. PAYSTACK WEBHOOK (Visa/Mastercard) ---
 app.post('/api/paystack/webhook', async (req, res) => {
     try {
         // Validate event using Paystack's signature
@@ -49,7 +69,7 @@ app.post('/api/paystack/webhook', async (req, res) => {
     res.status(200).send('Webhook received');
 });
 
-// --- DATABASE CONNECTION POOL ---
+// --- 5. DATABASE CONNECTION POOL ---
 const dbConfig = process.env.DATABASE_URL ? {
     uri: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }, // CRITICAL FOR AIVEN
@@ -70,7 +90,7 @@ const dbConfig = process.env.DATABASE_URL ? {
 
 const pool = mysql.createPool(dbConfig);
 
-// --- AUTO-INITIALIZE DATABASE TABLES & SEED DATA ---
+// --- 6. AUTO-INITIALIZE DATABASE TABLES & SEED DATA ---
 async function initializeDatabase() {
     try {
         console.log("🔄 Initializing database structures...");
@@ -180,7 +200,7 @@ async function initializeDatabase() {
 }
 initializeDatabase();
 
-// --- SECURITY MIDDLEWARE ---
+// --- 7. SECURITY MIDDLEWARE ---
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -193,10 +213,10 @@ function authenticateToken(req, res, next) {
     });
 }
 
-// --- ROUTER SETUP ---
+// --- 8. ROUTER SETUP ---
 const apiRouter = express.Router();
 
-// 1. AUTHENTICATION ENDPOINT
+// AUTHENTICATION ENDPOINT
 apiRouter.post('/auth/login', async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -211,7 +231,7 @@ apiRouter.post('/auth/login', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Database error during login.' }); }
 });
 
-// 2. PUBLIC ENDPOINTS
+// PUBLIC ENDPOINTS
 apiRouter.get('/public/gallery', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM gallery ORDER BY created_at DESC');
@@ -256,7 +276,7 @@ apiRouter.post('/public/subscribers', async (req, res) => {
     } catch (err) { res.status(400).json({ error: 'Email already subscribed' }); }
 });
 
-// 3. CO-OPERATIVE BANK (M-PESA TUMA PAYMENTS)
+// CO-OPERATIVE BANK (M-PESA TUMA PAYMENTS)
 async function getTumaToken() {
     const response = await axios.post('https://api.tuma.co.ke/auth/token', {
         email: process.env.TUMA_EMAIL,
@@ -331,7 +351,7 @@ apiRouter.post('/tuma-callback', async (req, res) => {
     } catch (err) { console.error("Callback DB update error:", err.message); }
 });
 
-// 4. VISA / MASTERCARD (PAYSTACK CHECKOUT)
+// VISA / MASTERCARD (PAYSTACK CHECKOUT)
 apiRouter.post('/paystack/donate', async (req, res) => {
     const { amount, name, email } = req.body;
     
@@ -363,7 +383,7 @@ apiRouter.post('/paystack/donate', async (req, res) => {
     }
 });
 
-// 5. SECURE ADMIN ENDPOINTS
+// SECURE ADMIN ENDPOINTS
 apiRouter.get('/admin/dashboard', authenticateToken, async (req, res) => {
     try {
         const [donations] = await pool.query('SELECT * FROM donations ORDER BY created_at DESC');
