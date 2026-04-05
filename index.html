@@ -194,23 +194,6 @@
                 </div>
             </div>
 
-            <!-- Live Donation Wall -->
-            <div class="container mx-auto px-4 py-20 reveal">
-                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-[2.5rem] p-8 md:p-12 shadow-inner border border-gray-200/50">
-                    <div class="flex flex-col md:flex-row items-center justify-between mb-10 gap-4 text-center md:text-left">
-                        <div>
-                            <h2 class="text-3xl font-serif font-bold text-brand-blueDark flex items-center justify-center md:justify-start gap-3"><div class="relative flex h-4 w-4"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-green opacity-75"></span><span class="relative inline-flex rounded-full h-4 w-4 bg-brand-green"></span></div> Live Kindness Feed</h2>
-                            <p class="text-gray-500 text-sm mt-2">Real-time impact from our wonderful everyday heroes.</p>
-                        </div>
-                        <button onclick="switchPage('donate')" class="bg-white border-2 border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-sm">Join the Wall</button>
-                    </div>
-                    <div id="public-donation-wall" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        <!-- Skeleton Loaders -->
-                        <div class="skeleton h-24 w-full"></div><div class="skeleton h-24 w-full"></div><div class="skeleton h-24 w-full"></div><div class="skeleton h-24 w-full"></div><div class="skeleton h-24 w-full hidden md:block"></div><div class="skeleton h-24 w-full hidden lg:block"></div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Dynamic Home Content (Real-time Gallery & News) -->
             <div class="container mx-auto px-4 py-10 grid grid-cols-1 lg:grid-cols-2 gap-16 mb-20 reveal">
                 <!-- Home Gallery Preview -->
@@ -1411,33 +1394,6 @@
         // --- FETCHING DATA ---
         async function loadPublicData() {
             try {
-                apiCall('/public/donations').then(docs => {
-                    const wall = document.getElementById('public-donation-wall');
-                    if (wall) {
-                        wall.innerHTML = docs.length ? '' : '<div class="col-span-full text-center text-gray-400 py-4">Be the first to donate today!</div>';
-                        docs.forEach(d => {
-                            const ini = d.name.split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2);
-                            // Differentiate icon based on payment method
-                            const iconHtml = d.payment_method === 'visa' 
-                                ? `<i class="fab fa-cc-visa text-[10px] absolute -bottom-1 -right-1 bg-white text-[#6772e5] rounded-full p-0.5 shadow-sm border border-gray-100"></i>`
-                                : `<i class="fas fa-mobile-alt text-[9px] absolute -bottom-1 -right-1 bg-white text-brand-green rounded-full px-1 shadow-sm border border-gray-100"></i>`;
-
-                            wall.innerHTML += `
-                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:-translate-y-1 transition-transform">
-                                <div class="relative w-12 h-12 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center font-bold text-sm mb-3 border border-brand-green/20">
-                                    ${ini}
-                                    ${iconHtml}
-                                </div>
-                                <p class="text-sm font-bold text-gray-800 line-clamp-1 mb-1">${d.name}</p>
-                                <p class="text-xs text-brand-green font-black bg-green-50 px-2 py-1 rounded">KES ${Number(d.amount).toLocaleString()}</p>
-                            </div>`;
-                        });
-                    }
-                }).catch(err => {
-                    const wall = document.getElementById('public-donation-wall');
-                    if (wall) wall.innerHTML = '<div class="col-span-full text-center text-red-400 text-sm py-4"><i class="fas fa-exclamation-triangle mb-2 text-2xl"></i><br>Database connection failed.</div>';
-                });
-
                 apiCall('/public/gallery').then(docs => {
                     const grid = document.getElementById('public-gallery-grid');
                     const homeGrid = document.getElementById('public-home-gallery');
